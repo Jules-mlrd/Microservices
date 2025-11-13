@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Utilisateurs - MicroShop</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Gestion des Utilisateurs</h1>
+            <div class="user-info">
+                <a href="{{ url_for('main.articles') }}" class="btn btn-secondary">Retour aux articles</a>
+                <span>Connecté en tant que: <strong>{{ username }}</strong></span>
+                <a href="{{ url_for('main.logout') }}" class="btn btn-secondary">Déconnexion</a>
+            </div>
+        </header>
+
+        {% if message %}
+        <div class="{% if 'erreur' in message|lower or 'existe déjà' in message|lower or 'incorrect' in message|lower %}error-message{% else %}success-message{% endif %}" style="margin-bottom: 20px;">
+            {{ message }}
+        </div>
+        {% endif %}
+
+        <!-- Formulaire d'ajout d'utilisateur -->
+        <div class="admin-section">
+            <h2>Ajouter un nouvel utilisateur</h2>
+            <form method="POST" action="{{ url_for('main.add_user_admin') }}" class="user-form">
+                <div class="form-group">
+                    <label for="username">Nom d'utilisateur *</label>
+                    <input type="text" id="username" name="username" required autofocus>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Mot de passe *</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email (optionnel)</label>
+                    <input type="email" id="email" name="email">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Ajouter l'utilisateur</button>
+            </form>
+        </div>
+
+        <!-- Liste des utilisateurs -->
+        <div class="admin-section">
+            <h2>Liste des utilisateurs ({{ users|length }})</h2>
+            {% if users %}
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom d'utilisateur</th>
+                        <th>Email</th>
+                        <th>Date de création</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user[0] }}</td>
+                        <td><strong>{{ user[1] }}</strong></td>
+                        <td>{{ user[2] or 'N/A' }}</td>
+                        <td>{{ user[3] }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('main.delete_user_admin', user_id=user[0]) }}" 
+                                  style="display: inline;" 
+                                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                                <button type="submit" class="btn btn-danger btn-small">Supprimer</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>Aucun utilisateur trouvé.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

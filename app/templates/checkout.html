@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passer commande - MicroShop</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="form-box">
+            <h1>Finaliser votre commande</h1>
+            
+            <div class="checkout-summary">
+                <h2>Récapitulatif de votre panier</h2>
+                {% for item in cart %}
+                <div class="checkout-item">
+                    <span>{{ item.nom }} × {{ item.quantity }}</span>
+                    <span class="checkout-price">{{ item.prix }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <form method="POST" action="{{ url_for('main.checkout') }}">
+                <div class="form-group">
+                    <label for="nom">Nom complet</label>
+                    <input type="text" id="nom" name="nom" required autofocus>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="adresse">Adresse de livraison</label>
+                    <textarea id="adresse" name="adresse" rows="3" required></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <a href="{{ url_for('main.cart') }}" class="btn btn-secondary">← Retour au panier</a>
+                    <button type="submit" class="btn btn-primary">Confirmer la commande</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+

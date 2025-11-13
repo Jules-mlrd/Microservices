@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Articles - MicroShop</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>MicroShop - Articles disponibles</h1>
+            <div class="user-info">
+                <a href="{{ url_for('main.cart') }}" class="cart-link">
+                    Panier 
+                    {% if cart_count > 0 %}
+                    <span class="cart-badge">{{ cart_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('main.admin_users') }}" class="btn btn-secondary">Gérer les utilisateurs</a>
+                <span>Connecté en tant que: <strong>{{ username }}</strong></span>
+                <a href="{{ url_for('main.logout') }}" class="btn btn-secondary">Déconnexion</a>
+            </div>
+        </header>
+        
+        {% if payment_error %}
+        <div class="error-message">
+            {{ payment_error }}
+        </div>
+        {% endif %}
+        
+        <div class="articles-grid">
+            {% for article in articles %}
+            <div class="article-card">
+                <div class="article-header">
+                    <h3>{{ article.nom }}</h3>
+                    <span class="price">{{ article.prix }}</span>
+                </div>
+                <p class="article-description">{{ article.description }}</p>
+                <div class="article-actions">
+                    <form method="POST" action="{{ url_for('main.add_to_cart', article_id=article.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-cart">
+                            Ajouter au panier
+                        </button>
+                    </form>
+                    <a href="{{ url_for('main.form', article_id=article.id) }}" class="btn btn-primary">
+                        Acheter direct
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
+
