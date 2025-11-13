@@ -62,6 +62,16 @@ def auth_logout():
         return jsonify({'success': False, 'error': error}), status
     return jsonify(result), status
 
+@bp.route('/auth/register', methods=['POST'])
+def auth_register():
+    """Forward vers Auth Service - Création d'utilisateur"""
+    data = request.get_json(silent=True) or {}
+    result, error, status = ServiceClient.forward_to_auth('/auth/register', 'POST', data)
+    
+    if error:
+        return jsonify({'success': False, 'error': error}), status
+    return jsonify(result), status
+
 # ========== Routes User Service (protégées) ==========
 @bp.route('/users', methods=['GET', 'POST'])
 @token_required

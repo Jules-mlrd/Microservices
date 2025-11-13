@@ -47,6 +47,21 @@ def create_app():
         """Page des articles"""
         return render_template('articles.html')
     
+    @app.route('/cart.html')
+    def cart_page():
+        """Page du panier"""
+        return render_template('cart.html')
+    
+    @app.route('/admin.html')
+    def admin_page():
+        """Page d'administration"""
+        return render_template('admin.html')
+    
+    @app.route('/bank.html')
+    def bank_page():
+        """Page de paiement bancaire"""
+        return render_template('bank.html')
+    
     return app
 
 if __name__ == '__main__':
