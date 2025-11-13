@@ -143,3 +143,38 @@ def logout():
         'message': 'Déconnexion réussie.'
     }), 200
 
+@bp.route('/register', methods=['POST'])
+def register():
+    """Crée un nouvel utilisateur avec login/password"""
+    data = request.get_json(silent=True) or {}
+    username = data.get('username')
+    password = data.get('password')
+    email = data.get('email', '')
+
+    if not username or not password:
+        return jsonify({
+            'success': False,
+            'error': {
+                'code': 'MISSING_CREDENTIALS',
+                'message': 'Les champs username et password sont requis.'
+            }
+        }), 400
+
+    from .database import create_user
+    success, user_id, error = create_user(username, password, email)
+    
+    if not success:
+        return jsonify({
+            'success': False,
+            'error': {
+                'code': 'CREATION_FAILED',
+                'message': error
+            }
+        }), 400
+
+    return jsonify({
+        'success': True,
+        'message': 'Utilisateur créé avec succès.',
+        'data': {'user_id': user_id, 'username': username}
+    }), 201
+

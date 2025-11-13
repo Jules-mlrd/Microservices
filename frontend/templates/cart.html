@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panier - MicroShop</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Mon Panier</h1>
+            <div class="user-info">
+                <a href="/articles.html" class="btn btn-secondary">Retour aux articles</a>
+                <span id="username-display">Chargement...</span>
+                <button id="logout-btn" class="btn btn-secondary">Déconnexion</button>
+            </div>
+        </header>
+        
+        <div id="error-message" class="error-message hidden"></div>
+        <div id="success-message" class="success-message hidden"></div>
+        
+        <div id="cart-container">
+            <div id="loading" class="loading">Chargement du panier...</div>
+            <div id="cart-content" class="hidden">
+                <div id="cart-items"></div>
+                <div id="cart-summary" class="cart-summary">
+                    <h2>Résumé</h2>
+                    <div class="summary-line">
+                        <span>Total articles:</span>
+                        <span id="total-items">0</span>
+                    </div>
+                    <div class="summary-line total">
+                        <span>Total:</span>
+                        <span id="total-price">0€</span>
+                    </div>
+                    <button id="checkout-btn" class="btn btn-primary btn-large">Passer la commande</button>
+                    <button id="clear-cart-btn" class="btn btn-secondary">Vider le panier</button>
+                </div>
+            </div>
+            <div id="empty-cart" class="hidden">
+                <p class="empty-message">Votre panier est vide.</p>
+                <a href="/articles.html" class="btn btn-primary">Voir les articles</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/api.js"></script>
+    <script src="/static/cart.js"></script>
+    <script>
+        // Vérifier si connecté
+        if (!api.getToken()) {
+            window.location.href = '/login.html';
+        }
+
+        // Charger le profil utilisateur
+        async function loadProfile() {
+            try {
+                const response = await api.getProfile();
+                if (response && response.success) {
+                    document.getElementById('username-display').textContent = 
+                        `Connecté en tant que: ${response.data.username || 'Utilisateur'}`;
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement du profil:', error);
+            }
+        }
+
+        // Charger le panier
+        function loadCart() {
+            const cart = cartManager.getCart();
+            const loadingDiv = document.getElementById('loading');
+            const cartContent = document.getElementById('cart-content');
+            const emptyCart = document.getElementById('empty-cart');
+            const cartItems = document.getElementById('cart-items');
+
+            loadingDiv.classList.add('hidden');
+
+            if (cart.length === 0) {
+                cartContent.classList.add('hidden');
+                emptyCart.classList.remove('hidden');
+            } else {
+                emptyCart.classList.add('hidden');
+                cartContent.classList.remove('hidden');
+                
+                // Afficher les articles
+                cartItems.innerHTML = cart.map(item => `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <h3>${item.name}</h3>
+                            <p class="cart-item-description">${item.description || ''}</p>
+                            <p class="cart-item-price">${item.price}€ × ${item.quantity} = ${(item.price * item.quantity).toFixed(2)}€</p>
+                        </div>
+                        <div class="cart-item-actions">
+                            <input type="number" min="1" value="${item.quantity}" 
+                                   onchange="updateQuantity(${item.id}, this.value)" 
+                                   class="quantity-input">
+                            <button onclick="removeItem(${item.id})" class="btn btn-danger btn-small">Supprimer</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Mettre à jour le résumé
+                updateSummary();
+            }
+        }
+
+        // Mettre à jour le résumé
+        function updateSummary() {
+            const cart = cartManager.getCart();
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const totalPrice = cartManager.getTotal();
+
+            document.getElementById('total-items').textContent = totalItems;
+            document.getElementById('total-price').textContent = totalPrice.toFixed(2) + '€';
+        }
+
+        // Mettre à jour la quantité
+        function updateQuantity(productId, quantity) {
+            cartManager.updateQuantity(productId, parseInt(quantity));
+            loadCart();
+        }
+
+        // Supprimer un article
+        function removeItem(productId) {
+            cartManager.removeItem(productId);
+            loadCart();
+            showSuccess('Article supprimé du panier');
+        }
+
+        // Vider le panier
+        document.getElementById('clear-cart-btn').addEventListener('click', () => {
+            if (confirm('Êtes-vous sûr de vouloir vider le panier ?')) {
+                cartManager.clear();
+                loadCart();
+                showSuccess('Panier vidé');
+            }
+        });
+
+        // Passer la commande
+        document.getElementById('checkout-btn').addEventListener('click', async () => {
+            const cart = cartManager.getCart();
+            
+            if (cart.length === 0) {
+                showError('Votre panier est vide');
+                return;
+            }
+
+            try {
+                // Convertir le panier en format pour l'API
+                const items = cart.map(item => ({
+                    product_id: item.id,
+                    quantity: item.quantity
+                }));
+
+                const response = await api.createOrder(items);
+                
+                if (response && response.success) {
+                    showSuccess(`Commande créée avec succès ! Total: ${response.data.total}€`);
+                    cartManager.clear();
+                    setTimeout(() => {
+                        window.location.href = '/bank.html?order_id=' + response.data.id;
+                    }, 2000);
+                }
+            } catch (error) {
+                showError('Erreur lors de la commande: ' + error.message);
+            }
+        });
+
+        // Afficher un message d'erreur
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+        }
+
+        // Afficher un message de succès
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success-message');
+            successDiv.textContent = message;
+            successDiv.classList.remove('hidden');
+            setTimeout(() => successDiv.classList.add('hidden'), 5000);
+        }
+
+        // Déconnexion
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await api.logout();
+            cartManager.clear();
+            window.location.href = '/login.html';
+        });
+
+        // Initialisation
+        loadProfile();
+        loadCart();
+    </script>
+</body>
+</html>
+

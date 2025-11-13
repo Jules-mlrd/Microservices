@@ -144,6 +144,23 @@ class APIClient {
             body: JSON.stringify({ items })
         });
     }
+
+    /**
+     * Crée un utilisateur avec login/password (via Auth Service)
+     */
+    async createUser(username, password, email = '') {
+        return await this.request('/auth/register', {
+            method: 'POST',
+            body: JSON.stringify({ username, password, email })
+        });
+    }
+
+    /**
+     * Liste tous les utilisateurs (admin)
+     */
+    async getAllUsers() {
+        return await this.request('/users');
+    }
 }
 
 // Instance globale

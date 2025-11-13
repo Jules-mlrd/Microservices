@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paiement - MicroShop</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="bank-box">
+            <h1>🏦 Traitement du Paiement</h1>
+            <div id="payment-status">
+                <div id="processing" class="payment-processing">
+                    <div class="spinner"></div>
+                    <p>Traitement de votre paiement en cours...</p>
+                    <p id="countdown">Redirection dans <span id="timer">10</span> secondes</p>
+                </div>
+                <div id="success" class="payment-success hidden">
+                    <h2>✅ Paiement réussi !</h2>
+                    <p>Votre commande a été validée.</p>
+                    <a href="/articles.html" class="btn btn-primary">Retour aux articles</a>
+                </div>
+                <div id="error" class="payment-error hidden">
+                    <h2>❌ Erreur de paiement</h2>
+                    <p id="error-message">Une erreur est survenue lors du traitement.</p>
+                    <a href="/cart.html" class="btn btn-secondary">Retour au panier</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/api.js"></script>
+    <script>
+        // Récupérer l'ID de commande depuis l'URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('order_id');
+
+        let countdown = 10;
+        let timerInterval;
+
+        // Simuler le traitement du paiement avec circuit breaker
+        async function processPayment() {
+            const processingDiv = document.getElementById('processing');
+            const successDiv = document.getElementById('success');
+            const errorDiv = document.getElementById('error');
+            const timerSpan = document.getElementById('timer');
+
+            // Démarrer le compte à rebours
+            timerInterval = setInterval(() => {
+                countdown--;
+                timerSpan.textContent = countdown;
+                
+                if (countdown <= 0) {
+                    clearInterval(timerInterval);
+                    // Simuler un échec après 10 secondes (circuit breaker)
+                    processingDiv.classList.add('hidden');
+                    errorDiv.classList.remove('hidden');
+                    document.getElementById('error-message').textContent = 
+                        'Timeout: Le paiement a pris trop de temps. Retour au panier.';
+                    
+                    // Rediriger après 3 secondes
+                    setTimeout(() => {
+                        window.location.href = '/cart.html';
+                    }, 3000);
+                }
+            }, 1000);
+
+            // Simuler un appel API bancaire (qui échoue après 10 secondes)
+            try {
+                // Simuler un délai de traitement
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                
+                // Si on arrive ici avant 10 secondes, le paiement réussit
+                if (countdown > 0) {
+                    clearInterval(timerInterval);
+                    processingDiv.classList.add('hidden');
+                    successDiv.classList.remove('hidden');
+                    
+                    // Rediriger vers les articles après 3 secondes
+                    setTimeout(() => {
+                        window.location.href = '/articles.html';
+                    }, 3000);
+                }
+            } catch (error) {
+                clearInterval(timerInterval);
+                processingDiv.classList.add('hidden');
+                errorDiv.classList.remove('hidden');
+                document.getElementById('error-message').textContent = 
+                    'Erreur lors du traitement: ' + error.message;
+            }
+        }
+
+        // Démarrer le traitement
+        processPayment();
+    </script>
+    <style>
+        .bank-box {
+            background: linear-gradient(to bottom, #ffffff 0%, #f8f8f8 100%);
+            max-width: 600px;
+            margin: 80px auto;
+            padding: 50px;
+            border: 3px solid #000;
+            box-shadow: 8px 8px 0 #000;
+            text-align: center;
+        }
+
+        .bank-box h1 {
+            color: #000;
+            margin-bottom: 30px;
+            font-size: 36px;
+        }
+
+        .payment-processing {
+            padding: 40px 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #000;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .payment-processing p {
+            color: #666;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+
+        #timer {
+            font-weight: bold;
+            color: #000;
+            font-size: 24px;
+        }
+
+        .payment-success, .payment-error {
+            padding: 40px 20px;
+        }
+
+        .payment-success h2, .payment-error h2 {
+            color: #000;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .payment-success p, .payment-error p {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+    </style>
+</body>
+</html>
+

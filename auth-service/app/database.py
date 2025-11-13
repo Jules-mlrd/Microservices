@@ -51,6 +51,29 @@ def init_db():
     conn.commit()
     conn.close()
 
+def create_user(username, password, email=''):
+    """Crée un nouvel utilisateur avec mot de passe hashé"""
+    if not username or not password:
+        return False, None, "Username et password requis"
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    try:
+        password_hash = generate_password_hash(password)
+        cursor.execute('INSERT INTO users (username, password, email) VALUES (?, ?, ?)',
+                     (username, password_hash, email))
+        conn.commit()
+        user_id = cursor.lastrowid
+        conn.close()
+        return True, user_id, None
+    except sqlite3.IntegrityError:
+        conn.close()
+        return False, None, "Cet utilisateur existe déjà"
+    except Exception as e:
+        conn.close()
+        return False, None, f"Erreur: {str(e)}"
+
 def verify_user(username, password):
     """Vérifie les identifiants d'un utilisateur"""
     if not username or not password:

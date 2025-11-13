@@ -11,6 +11,8 @@
         <header class="header">
             <h1>MicroShop - Articles disponibles</h1>
             <div class="user-info">
+                <a href="/cart.html" class="btn btn-secondary">Panier (<span id="cart-count">0</span>)</a>
+                <a href="/admin.html" class="btn btn-secondary">Gérer utilisateurs</a>
                 <span id="username-display">Chargement...</span>
                 <button id="logout-btn" class="btn btn-secondary">Déconnexion</button>
             </div>
@@ -24,6 +26,7 @@
     </div>
 
     <script src="/static/api.js"></script>
+    <script src="/static/cart.js"></script>
     <script>
         // Vérifier si connecté
         if (!api.getToken()) {
@@ -63,13 +66,11 @@
                                     <span class="price">${product.price}€</span>
                                 </div>
                                 <p class="article-description">${product.description || 'Aucune description'}</p>
-                                <div class="article-actions">
+                                                <div class="article-actions">
                                     <button class="btn btn-cart" onclick="addToCart(${product.id})">
                                         Ajouter au panier
                                     </button>
-                                    <button class="btn btn-primary" onclick="buyNow(${product.id})">
-                                        Acheter direct
-                                    </button>
+                                    <a href="/cart.html" class="btn btn-primary">Voir le panier</a>
                                 </div>
                             </div>
                         `).join('');
@@ -83,16 +84,22 @@
             }
         }
 
-        // Ajouter au panier (simulation - créer une commande)
+        // Ajouter au panier
         async function addToCart(productId) {
             try {
-                const response = await api.createOrder([{
-                    product_id: productId,
-                    quantity: 1
-                }]);
+                // Récupérer les détails du produit
+                const productsResponse = await api.getProducts();
+                const product = productsResponse.data.find(p => p.id === productId);
                 
-                if (response && response.success) {
-                    showSuccess('Article ajouté au panier !');
+                if (product) {
+                    // Utiliser le gestionnaire de panier
+                    if (typeof cartManager !== 'undefined') {
+                        cartManager.addItem(product, 1);
+                        showSuccess('Article ajouté au panier !');
+                    } else {
+                        // Fallback si cartManager n'est pas chargé
+                        showSuccess('Article ajouté !');
+                    }
                 }
             } catch (error) {
                 showError('Erreur lors de l\'ajout au panier: ' + error.message);
@@ -137,9 +144,20 @@
             window.location.href = 'login.html';
         });
 
+        // Mettre à jour le compteur du panier
+        function updateCartCount() {
+            if (typeof cartManager !== 'undefined') {
+                const count = cartManager.getItemCount();
+                document.getElementById('cart-count').textContent = count;
+            }
+        }
+
         // Initialisation
         loadProfile();
         loadProducts();
+        updateCartCount();
+        // Mettre à jour le compteur toutes les secondes
+        setInterval(updateCartCount, 1000);
     </script>
 </body>
 </html>

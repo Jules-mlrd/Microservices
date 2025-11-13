@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Utilisateurs - MicroShop</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Gestion des Utilisateurs</h1>
+            <div class="user-info">
+                <a href="/articles.html" class="btn btn-secondary">Retour aux articles</a>
+                <span id="username-display">Chargement...</span>
+                <button id="logout-btn" class="btn btn-secondary">Déconnexion</button>
+            </div>
+        </header>
+
+        <div id="error-message" class="error-message hidden"></div>
+        <div id="success-message" class="success-message hidden"></div>
+
+        <!-- Formulaire d'ajout d'utilisateur -->
+        <div class="admin-section">
+            <h2>Ajouter un nouvel utilisateur</h2>
+            <form id="add-user-form" class="user-form">
+                <div class="form-group">
+                    <label for="username">Nom d'utilisateur *</label>
+                    <input type="text" id="username" name="username" required autofocus>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Mot de passe *</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email (optionnel)</label>
+                    <input type="email" id="email" name="email">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Ajouter l'utilisateur</button>
+            </form>
+        </div>
+
+        <!-- Liste des utilisateurs -->
+        <div class="admin-section">
+            <h2>Liste des utilisateurs</h2>
+            <div id="loading-users" class="loading">Chargement...</div>
+            <div id="users-list" class="hidden"></div>
+        </div>
+    </div>
+
+    <script src="/static/api.js"></script>
+    <script>
+        // Vérifier si connecté
+        if (!api.getToken()) {
+            window.location.href = '/login.html';
+        }
+
+        // Charger le profil utilisateur
+        async function loadProfile() {
+            try {
+                const response = await api.getProfile();
+                if (response && response.success) {
+                    document.getElementById('username-display').textContent = 
+                        `Connecté en tant que: ${response.data.username || 'Utilisateur'}`;
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement du profil:', error);
+            }
+        }
+
+        // Charger la liste des utilisateurs
+        async function loadUsers() {
+            try {
+                const response = await api.getAllUsers();
+                const loadingDiv = document.getElementById('loading-users');
+                const usersList = document.getElementById('users-list');
+
+                loadingDiv.classList.add('hidden');
+                usersList.classList.remove('hidden');
+
+                if (response && response.success && response.data.length > 0) {
+                    usersList.innerHTML = `
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nom d'utilisateur</th>
+                                    <th>Email</th>
+                                    <th>Date de création</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${response.data.map(user => `
+                                    <tr>
+                                        <td>${user.id}</td>
+                                        <td><strong>${user.username}</strong></td>
+                                        <td>${user.email || 'N/A'}</td>
+                                        <td>${user.date_creation || 'N/A'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    usersList.innerHTML = '<p>Aucun utilisateur trouvé.</p>';
+                }
+            } catch (error) {
+                showError('Erreur lors du chargement des utilisateurs: ' + error.message);
+            }
+        }
+
+        // Gestion du formulaire d'ajout
+        document.getElementById('add-user-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value;
+
+            try {
+                // Note: Pour créer un utilisateur avec login/password, on doit appeler l'Auth Service
+                // Pour l'instant, on utilise l'endpoint User Service qui ne gère pas les passwords
+                // Il faudrait créer un endpoint dans Auth Service pour créer des utilisateurs
+                const response = await api.createUser(username, password, email);
+                
+                if (response && response.success) {
+                    showSuccess('Utilisateur ajouté avec succès !');
+                    document.getElementById('add-user-form').reset();
+                    loadUsers();
+                }
+            } catch (error) {
+                showError('Erreur lors de l\'ajout: ' + error.message);
+            }
+        });
+
+        // Afficher un message d'erreur
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+        }
+
+        // Afficher un message de succès
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success-message');
+            successDiv.textContent = message;
+            successDiv.classList.remove('hidden');
+            setTimeout(() => successDiv.classList.add('hidden'), 5000);
+        }
+
+        // Déconnexion
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await api.logout();
+            window.location.href = '/login.html';
+        });
+
+        // Initialisation
+        loadProfile();
+        loadUsers();
+    </script>
+</body>
+</html>
+
