@@ -1,16 +1,42 @@
 """
 Point d'entrée principal de l'API Gateway
 """
-from flask import Flask
+from flask import Flask, send_from_directory
+import os
 from .routes import bp
 
 def create_app():
     """Factory pour créer l'application Flask"""
-    app = Flask(__name__)
+    app = Flask(__name__, 
+                static_folder='../frontend/static',
+                template_folder='../frontend/templates')
     app.config['SECRET_KEY'] = 'api-gateway-secret-key'
     
-    # Enregistrer les routes
+    # Enregistrer les routes API
     app.register_blueprint(bp)
+    
+    # Routes pour servir les pages HTML
+    @app.route('/')
+    def index():
+        """Redirige vers la page de login"""
+        from flask import redirect
+        return redirect('/login.html')
+    
+    @app.route('/login.html')
+    def login_page():
+        """Page de login"""
+        return send_from_directory('../frontend/templates', 'login.html')
+    
+    @app.route('/articles.html')
+    def articles_page():
+        """Page des articles"""
+        return send_from_directory('../frontend/templates', 'articles.html')
+    
+    # Route pour servir les fichiers statiques
+    @app.route('/static/<path:filename>')
+    def static_files(filename):
+        """Serve les fichiers statiques"""
+        return send_from_directory('../frontend/static', filename)
     
     return app
 

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Articles - MicroShop</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>MicroShop - Articles disponibles</h1>
+            <div class="user-info">
+                <span id="username-display">Chargement...</span>
+                <button id="logout-btn" class="btn btn-secondary">Déconnexion</button>
+            </div>
+        </header>
+        
+        <div id="error-message" class="error-message hidden"></div>
+        <div id="success-message" class="success-message hidden"></div>
+        
+        <div id="loading" class="loading">Chargement des articles...</div>
+        <div id="articles-container" class="articles-grid hidden"></div>
+    </div>
+
+    <script src="/static/api.js"></script>
+    <script>
+        // Vérifier si connecté
+        if (!api.getToken()) {
+            window.location.href = 'login.html';
+        }
+
+        // Charger le profil utilisateur
+        async function loadProfile() {
+            try {
+                const response = await api.getProfile();
+                if (response && response.success) {
+                    document.getElementById('username-display').textContent = 
+                        `Connecté en tant que: ${response.data.username || 'Utilisateur'}`;
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement du profil:', error);
+            }
+        }
+
+        // Charger les produits
+        async function loadProducts() {
+            const loadingDiv = document.getElementById('loading');
+            const container = document.getElementById('articles-container');
+            
+            try {
+                const response = await api.getProducts();
+                
+                if (response && response.success) {
+                    loadingDiv.classList.add('hidden');
+                    container.classList.remove('hidden');
+                    
+                    if (response.data && response.data.length > 0) {
+                        container.innerHTML = response.data.map(product => `
+                            <div class="article-card">
+                                <div class="article-header">
+                                    <h3>${product.name}</h3>
+                                    <span class="price">${product.price}€</span>
+                                </div>
+                                <p class="article-description">${product.description || 'Aucune description'}</p>
+                                <div class="article-actions">
+                                    <button class="btn btn-cart" onclick="addToCart(${product.id})">
+                                        Ajouter au panier
+                                    </button>
+                                    <button class="btn btn-primary" onclick="buyNow(${product.id})">
+                                        Acheter direct
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        container.innerHTML = '<p>Aucun produit disponible.</p>';
+                    }
+                }
+            } catch (error) {
+                loadingDiv.textContent = 'Erreur lors du chargement des articles';
+                console.error('Erreur:', error);
+            }
+        }
+
+        // Ajouter au panier (simulation - créer une commande)
+        async function addToCart(productId) {
+            try {
+                const response = await api.createOrder([{
+                    product_id: productId,
+                    quantity: 1
+                }]);
+                
+                if (response && response.success) {
+                    showSuccess('Article ajouté au panier !');
+                }
+            } catch (error) {
+                showError('Erreur lors de l\'ajout au panier: ' + error.message);
+            }
+        }
+
+        // Acheter direct
+        async function buyNow(productId) {
+            try {
+                const response = await api.createOrder([{
+                    product_id: productId,
+                    quantity: 1
+                }]);
+                
+                if (response && response.success) {
+                    showSuccess(`Commande créée ! Total: ${response.data.total}€`);
+                }
+            } catch (error) {
+                showError('Erreur lors de la commande: ' + error.message);
+            }
+        }
+
+        // Afficher un message d'erreur
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+        }
+
+        // Afficher un message de succès
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success-message');
+            successDiv.textContent = message;
+            successDiv.classList.remove('hidden');
+            setTimeout(() => successDiv.classList.add('hidden'), 5000);
+        }
+
+        // Déconnexion
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await api.logout();
+            window.location.href = 'login.html';
+        });
+
+        // Initialisation
+        loadProfile();
+        loadProducts();
+    </script>
+</body>
+</html>
+
