@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - FLASK_ENV=development
+      - AUTH_SERVICE_URL=http://auth-service:8001
+      - USER_SERVICE_URL=http://user-service:8002
+      - ORDERS_SERVICE_URL=http://orders-service:8003
+    depends_on:
+      - auth-service
+      - user-service
+      - orders-service
+    networks:
+      - microservices-network
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - FLASK_ENV=development
+    volumes:
+      - ./auth-service/auth_service.db:/app/auth_service.db
+    networks:
+      - microservices-network
+
+  # User Service
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    environment:
+      - FLASK_ENV=development
+    volumes:
+      - ./user-service/user_service.db:/app/user_service.db
+    networks:
+      - microservices-network
+
+  # Orders Service
+  orders-service:
+    build:
+      context: ./orders-service
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8003"
+    environment:
+      - FLASK_ENV=development
+    volumes:
+      - ./orders-service/orders_service.db:/app/orders_service.db
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge
+
