@@ -3,7 +3,7 @@ Routes pour le service d'authentification
 """
 from flask import Blueprint, request, jsonify
 from .database import verify_user, verify_refresh_token, revoke_refresh_token
-from .jwt_utils import generate_token_pair, verify_token
+from .authlib_utils import generate_token_pair, verify_token
 
 bp = Blueprint('auth', __name__)
 

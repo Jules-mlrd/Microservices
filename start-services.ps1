@@ -21,14 +21,14 @@ Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd orders-service
 Start-Sleep -Seconds 2
 
 # Demarrer API Gateway
-Write-Host "Demarrage API Gateway (port 8000)..." -ForegroundColor Yellow
+Write-Host "Demarrage API Gateway (port 5000)..." -ForegroundColor Yellow
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd api-gateway; python -m app.main" -WindowStyle Minimized
 
 Write-Host ""
 Write-Host "Tous les services sont demarres!" -ForegroundColor Green
 Write-Host ""
 Write-Host "Endpoints disponibles:" -ForegroundColor Cyan
-Write-Host "   - API Gateway:    http://localhost:8000"
+Write-Host "   - API Gateway:    http://localhost:5000"
 Write-Host "   - Auth Service:   http://localhost:8001"
 Write-Host "   - User Service:   http://localhost:8002"
 Write-Host "   - Orders Service: http://localhost:8003"

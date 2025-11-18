@@ -66,7 +66,7 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    print("[API Gateway] Démarrage sur le port 8000")
+    print("[API Gateway] Démarrage sur le port 5000")
     print("[API Gateway] Point d'entrée unique pour tous les microservices")
     print("[API Gateway] Routes disponibles:")
     print("  - POST /auth/login")
@@ -75,5 +75,5 @@ if __name__ == '__main__':
     print("  - GET  /users/profile (protégé)")
     print("  - GET  /products (public)")
     print("  - GET  /orders (protégé)")
-    app.run(debug=True, host='0.0.0.0', port=8000)
+    app.run(debug=True, host='0.0.0.0', port=5000)
 

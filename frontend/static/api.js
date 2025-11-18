@@ -1,7 +1,7 @@
 /**
  * Client API pour communiquer avec l'API Gateway
  */
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'http://localhost:5000';
 
 class APIClient {
     constructor() {

@@ -29,7 +29,7 @@ ORDERS_PID=$!
 sleep 2
 
 # Démarrer API Gateway
-echo "📦 Démarrage API Gateway (port 8000)..."
+echo "📦 Démarrage API Gateway (port 5000)..."
 cd ../api-gateway && python -m app.main &
 GATEWAY_PID=$!
 
@@ -37,7 +37,7 @@ echo ""
 echo "✅ Tous les services sont démarrés!"
 echo ""
 echo "📍 Endpoints disponibles:"
-echo "   - API Gateway:    http://localhost:8000"
+echo "   - API Gateway:    http://localhost:5000"
 echo "   - Auth Service:   http://localhost:8001"
 echo "   - User Service:   http://localhost:8002"
 echo "   - Orders Service: http://localhost:8003"

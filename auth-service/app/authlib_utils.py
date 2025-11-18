@@ -1,11 +1,11 @@
 """
-Utilitaires pour la gestion des tokens JWT
+Utilitaires pour la gestion des tokens Authlib
 """
-import jwt
 import time
-from flask import current_app
+from authlib.jose import jwt, JoseError
 
 SECRET_KEY = 'votre-cle-secrete-super-secure-2024-microservices'
+JWT_HEADER = {'alg': 'HS256', 'typ': 'JWT'}
 
 def generate_access_token(username):
     """Génère un access token JWT valable une heure"""
@@ -16,16 +16,16 @@ def generate_access_token(username):
         'exp': current_time + 3600,  # 1 heure
         'type': 'access'
     }
-    return jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+    token = jwt.encode(JWT_HEADER, payload, SECRET_KEY)
+    return token.decode('utf-8') if isinstance(token, bytes) else token
 
 def verify_token(token):
     """Vérifie et décode un token JWT"""
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-        return payload
-    except jwt.ExpiredSignatureError:
-        return None
-    except jwt.InvalidTokenError:
+        claims = jwt.decode(token, SECRET_KEY)
+        claims.validate()
+        return claims
+    except JoseError:
         return None
 
 def generate_token_pair(username):

@@ -16,7 +16,7 @@
                     ┌──────────▼───────────┐
                     │                     │
                     │    API GATEWAY      │
-                    │   Port: 8000        │
+                    │   Port: 5000        │
                     │                     │
                     │  - Routing          │
                     │  - Token Validation │
@@ -55,7 +55,7 @@
 ### 1. Authentification
 ```
 Client → API Gateway → Auth Service → Database
-         (validate)    (generate JWT)
+         (validate)    (generate JWT via Authlib)
 ```
 
 ### 2. Requête Protégée
@@ -73,7 +73,7 @@ Client → API Gateway → Auth Service → Database
 ## 🏗️ Structure des Services
 
 ### Auth Service (Port 8001)
-**Responsabilité** : Authentification et gestion des tokens JWT
+**Responsabilité** : Authentification et gestion des tokens JWT (Authlib)
 
 **Endpoints** :
 - `POST /auth/login` - Connexion et génération de tokens
@@ -115,12 +115,12 @@ Client → API Gateway → Auth Service → Database
 - Table `orders`
 - Table `order_items`
 
-### API Gateway (Port 8000)
+### API Gateway (Port 5000)
 **Responsabilité** : Point d'entrée unique, routage et validation
 
 **Fonctionnalités** :
 - Routage des requêtes vers les services appropriés
-- Validation des tokens JWT avant forwarding
+- Validation des tokens JWT (Authlib) avant forwarding
 - Gestion des erreurs et timeouts
 - Logging des requêtes
 
@@ -178,7 +178,7 @@ microservices/
 │   │   ├── __init__.py
 │   │   ├── main.py            # Point d'entrée Flask
 │   │   ├── routes.py          # Routes /auth/*
-│   │   ├── jwt_utils.py        # Utilitaires JWT
+│   │   ├── authlib_utils.py    # Utilitaires JWT (Authlib)
 │   │   └── database.py         # Gestion DB (users, refresh_tokens)
 │   ├── requirements.txt
 │   └── Dockerfile
@@ -188,7 +188,7 @@ microservices/
 │   │   ├── __init__.py
 │   │   ├── main.py            # Point d'entrée Flask
 │   │   ├── routes.py          # Routage vers les services
-│   │   ├── auth_middleware.py # Validation JWT
+│   │   ├── auth_middleware.py # Validation JWT (Authlib)
 │   │   └── service_client.py  # Clients HTTP vers services
 │   ├── requirements.txt
 │   └── Dockerfile
@@ -225,7 +225,7 @@ microservices/
 **Requête vers API Gateway** :
 ```http
 GET /users/profile HTTP/1.1
-Host: localhost:8000
+Host: localhost:5000
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
@@ -274,7 +274,7 @@ cd orders-service && python -m app.main
 ```
 
 ### Ports par Service
-- **API Gateway** : 8000
+- **API Gateway** : 5000
 - **Auth Service** : 8001
 - **User Service** : 8002
 - **Orders Service** : 8003
@@ -283,7 +283,7 @@ cd orders-service && python -m app.main
 
 ## 🔒 Sécurité
 
-1. **JWT Signing** : Secret key partagée entre Auth Service et API Gateway
+1. **JWT Signing (Authlib)** : Secret key partagée entre Auth Service et API Gateway
 2. **HTTPS** : Recommandé en production
 3. **CORS** : Configuration appropriée pour les clients web
 4. **Rate Limiting** : Implémenté au niveau de l'API Gateway
@@ -309,7 +309,7 @@ cd orders-service && python -m app.main
 ## 🛠️ Technologies
 
 - **Flask** : Framework web Python
-- **PyJWT** : Gestion JWT
+- **Authlib** : Gestion JWT
 - **SQLite** : Base de données
 - **Redis** : Cache et sessions
 - **Docker** : Containerisation

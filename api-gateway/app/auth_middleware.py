@@ -1,7 +1,7 @@
 """
-Middleware pour la validation des tokens JWT
+Middleware pour la validation des tokens Authlib
 """
-import jwt
+from authlib.jose import jwt, JoseError
 import requests
 from functools import wraps
 from flask import request, jsonify, g
@@ -17,11 +17,10 @@ ORDERS_SERVICE_URL = 'http://localhost:8003'
 def verify_token(token):
     """Vérifie et décode un token JWT"""
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-        return payload
-    except jwt.ExpiredSignatureError:
-        return None
-    except jwt.InvalidTokenError:
+        claims = jwt.decode(token, SECRET_KEY)
+        claims.validate()
+        return claims
+    except JoseError:
         return None
 
 def token_required(f):
