@@ -1,0 +1,60 @@
+version: "3.9"
+
+services:
+  auth-service:
+    build:
+      context: ./auth-service
+    container_name: auth-service
+    networks:
+      - ecommerce-net
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./auth-service/auth_service.db:/app/auth_service.db
+
+  user-service:
+    build:
+      context: ./user-service
+    container_name: user-service
+    networks:
+      - ecommerce-net
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./user-service/user_service.db:/app/user_service.db
+
+  orders-service:
+    build:
+      context: ./orders-service
+    container_name: orders-service
+    networks:
+      - ecommerce-net
+    ports:
+      - "8003:8003"
+    volumes:
+      - ./orders-service/orders_service.db:/app/orders_service.db
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    container_name: api-gateway
+    depends_on:
+      - auth-service
+      - user-service
+      - orders-service
+    ports:
+      - "5000:5000"
+    environment:
+      - AUTH_SERVICE_URL=http://auth-service:8001
+      - USER_SERVICE_URL=http://user-service:8002
+      - ORDERS_SERVICE_URL=http://orders-service:8003
+    volumes:
+      - ./frontend:/frontend
+    networks:
+      - ecommerce-net
+
+networks:
+  ecommerce-net:
+    driver: bridge
+
+

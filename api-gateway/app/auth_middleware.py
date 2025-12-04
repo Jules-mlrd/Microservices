@@ -9,10 +9,13 @@ from flask import request, jsonify, g
 # Secret key partagée avec Auth Service
 SECRET_KEY = 'votre-cle-secrete-super-secure-2024-microservices'
 
-# URLs des services
-AUTH_SERVICE_URL = 'http://localhost:8001'
-USER_SERVICE_URL = 'http://localhost:8002'
-ORDERS_SERVICE_URL = 'http://localhost:8003'
+# URLs des services (utilise les noms de services Docker par défaut,
+# ou localhost en fallback pour l'exécution locale hors Docker)
+import os
+
+AUTH_SERVICE_URL = os.getenv('AUTH_SERVICE_URL', 'http://localhost:8001')
+USER_SERVICE_URL = os.getenv('USER_SERVICE_URL', 'http://localhost:8002')
+ORDERS_SERVICE_URL = os.getenv('ORDERS_SERVICE_URL', 'http://localhost:8003')
 
 def verify_token(token):
     """Vérifie et décode un token JWT"""

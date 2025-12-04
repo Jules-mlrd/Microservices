@@ -24,3 +24,13 @@ env/
 .idea/
 *.swp
 *.swo
+
+# Terraform
+terraform-bin/
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# PDF (optionnel - décommentez si vous ne voulez pas pousser le PDF du TP)
+# TP1_Terraform_ESME_ecommerce_separe.pdf

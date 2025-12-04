@@ -7,14 +7,22 @@ from .routes import bp
 
 def create_app():
     """Factory pour créer l'application Flask"""
-    # Chemin absolu vers le dossier frontend
-    # Depuis api-gateway/app/main.py -> api-gateway -> racine du projet
-    current_file = os.path.abspath(__file__)  # api-gateway/app/main.py
-    app_dir = os.path.dirname(current_file)    # api-gateway/app
-    gateway_dir = os.path.dirname(app_dir)     # api-gateway
-    base_dir = os.path.dirname(gateway_dir)    # racine du projet (Exo_Flask)
-    frontend_static = os.path.join(base_dir, 'frontend', 'static')
-    frontend_templates = os.path.join(base_dir, 'frontend', 'templates')
+    # Détection si on est dans Docker ou en local
+    # Dans Docker, le frontend est monté à /frontend
+    # En local, il faut remonter depuis api-gateway/app/main.py
+    if os.path.exists('/frontend'):
+        # On est dans Docker, le frontend est monté à /frontend
+        frontend_static = '/frontend/static'
+        frontend_templates = '/frontend/templates'
+        base_dir = '/frontend'
+    else:
+        # On est en local, remonter depuis api-gateway/app/main.py
+        current_file = os.path.abspath(__file__)  # api-gateway/app/main.py
+        app_dir = os.path.dirname(current_file)    # api-gateway/app
+        gateway_dir = os.path.dirname(app_dir)     # api-gateway
+        base_dir = os.path.dirname(gateway_dir)    # racine du projet (Exo_fil_rouge)
+        frontend_static = os.path.join(base_dir, 'frontend', 'static')
+        frontend_templates = os.path.join(base_dir, 'frontend', 'templates')
     
     # Debug: afficher les chemins
     print(f"[API Gateway] Base directory: {base_dir}")
